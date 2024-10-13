@@ -1,14 +1,14 @@
 import { useSelectorCreator } from "@rbxts/react-reflex";
 import React from "@rbxts/react";
 import { Players } from "@rbxts/services";
-import Frame from "client/ui/components/frame";
-import ImageLabel from "client/ui/components/imageLabel";
-import TextLabel from "client/ui/components/textLabel";
-import { TextLabelButton } from "client/ui/components/textLabelButton";
+import Frame from "client/ui/legacy/components/Frame";
+import ImageLabel from "client/ui/legacy/components/imageLabel";
+import TextLabel from "client/ui/legacy/components/textLabel";
+import { TextLabelButton } from "client/ui/legacy/components/textLabelButton";
 import { Currency } from "shared/configs/Currency";
 import { selectPlayerBalance } from "shared/store/selectors/players";
 import { COLORS } from "shared/configs/Gui";
-import { GetStatePlayerId } from "client/ui/utils/GetStatePlayerId";
+import { GetStatePlayerId } from "client/ui/utils/playerUtils";
 
 interface Props extends React.PropsWithChildren {
 	currency: Currency;

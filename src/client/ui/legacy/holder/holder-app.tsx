@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "@rbxts/react";
-import Frame from "client/ui/components/frame";
+import Frame from "client/ui/legacy/components/Frame";
 import SettingsApp from "../settings/settings-app";
 import { useSelector } from "@rbxts/react-reflex";
 import CurrencyApp from "../currency/currency-app";
@@ -9,7 +9,7 @@ import { RunService, StarterGui } from "@rbxts/services";
 import { Events } from "client/network";
 import { selectHolderPage } from "shared/store/selectors/client";
 import ButtonsApp from "../buttons/buttons-app";
-import TextButton from "client/ui/components/textButton";
+import TextButton from "client/ui/legacy/components/textButton";
 
 export default function HolderApp() {
 	const page = useSelector(selectHolderPage);

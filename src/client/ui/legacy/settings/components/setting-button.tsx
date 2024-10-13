@@ -1,14 +1,14 @@
 import { useSelector } from "@rbxts/react-reflex";
 import React from "@rbxts/react";
 import { Events } from "client/network";
-import TextLabel from "client/ui/components/textLabel";
+import TextLabel from "client/ui/legacy/components/textLabel";
 import { Setting } from "shared/configs/Settings";
 import { Players, RunService } from "@rbxts/services";
 import { selectPlayerSetting } from "shared/store/selectors/players";
-import { GetStatePlayerId } from "client/ui/utils/GetStatePlayerId";
+import { GetStatePlayerId } from "client/ui/utils/playerUtils";
 import { store } from "client/store";
 import { COLORS } from "shared/configs/Gui";
-import TextButton from "client/ui/components/textButton";
+import TextButton from "client/ui/legacy/components/textButton";
 
 interface Props {
 	setting: Setting;

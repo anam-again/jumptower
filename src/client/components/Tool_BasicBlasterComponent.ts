@@ -124,6 +124,7 @@ export class Tool_BasicBlasterComponent extends BaseComponent<{}, Tool_BasicBlas
 			Transparency: 0.8,
 			CanCollide: false,
 			CanTouch: false,
+			CanQuery: false,
 		});
 		const sourceAttachment = Make("Attachment", {
 			Parent: beamOrigin,

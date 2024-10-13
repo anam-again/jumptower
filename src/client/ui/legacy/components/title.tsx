@@ -1,5 +1,5 @@
 import React from "@rbxts/react";
-import Frame from "./frame";
+import Frame from "./Frame";
 import TextLabel from "./textLabel";
 
 interface Props extends React.PropsWithChildren {

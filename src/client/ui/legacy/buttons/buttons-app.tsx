@@ -1,6 +1,6 @@
 import { HolderPage, ImageName } from "shared/configs/Gui";
 import React from "@rbxts/react";
-import Frame from "client/ui/components/frame";
+import Frame from "client/ui/legacy/components/Frame";
 import Object from "@rbxts/object-utils";
 import Button from "./components/button";
 import { store } from "client/store";

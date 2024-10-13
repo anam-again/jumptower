@@ -1,11 +1,12 @@
 import { Service, OnStart } from "@flamework/core";
 import { Make } from "@rbxts/altmake";
-import { Workspace } from "@rbxts/services";
+import { Players, Workspace } from "@rbxts/services";
 import { Events } from "server/network";
 import { GiveToolToPlayerPartExtension } from "shared/components/Extensions/GiveToolToPlayerPartExtension";
 import { createGUID } from "shared/utils/guid";
 import { DoubletapService } from "./DoubletapService";
 import { ComponentTags } from "shared/tags";
+import { store } from "server/store";
 
 const SPORE_SIZE = 4;
 const SPORE_SHUFFLE_INTERVAL_S = 5;
@@ -93,6 +94,7 @@ export class FloodsporeGameControllerService implements OnStart {
 					if (fSpore === undefined) return;
 					this.sporeMap.set(poss, fSpore);
 					this.activeSporeList.push(poss);
+					store.setSporeCount(this.sporeMap.size());
 				});
 				this.startGame();
 			}
@@ -105,10 +107,12 @@ export class FloodsporeGameControllerService implements OnStart {
 
 	startGame() {
 		task.spawn(() => {
+			Events.writeToEventLog.fire(Players.GetPlayers(), "Spores have been spawned!");
 			while (this.activeSporeList.size() > 0) {
 				task.wait(SPORE_SHUFFLE_INTERVAL_S);
 				this.shuffle(this.activeSporeList);
 			}
+			Events.writeToEventLog.fire(Players.GetPlayers(), "All spores defeated.");
 		});
 		while (this.activeSporeList.size() > 0) {
 			this.growNextQueuedSpore();
@@ -178,6 +182,9 @@ export class FloodsporeGameControllerService implements OnStart {
 				this.activeSporeList.push(pposKey);
 			}
 		});
+		if (spores.size() > 0) {
+			store.addSporeCount(spores.size());
+		}
 	}
 
 	removeSpore(position: SimpleVector) {
@@ -186,6 +193,7 @@ export class FloodsporeGameControllerService implements OnStart {
 		if (spore === undefined) return;
 		spore.Destroy();
 		this.sporeMap.delete(sPos);
+		store.decrementSporeCount();
 		this.getPotentialNeighborsOfSpore(position).forEach((ppos) => {
 			const pposKey = ppos.toString();
 			if (this.sporeMap.has(pposKey)) {
@@ -207,6 +215,9 @@ export class FloodsporeGameControllerService implements OnStart {
 		return arr;
 	}
 
+	/**
+	 * This function does not handle the store.sporeCount variable, instead, calling functions can batch together this operation
+	 */
 	makeSporeHere(position: SimpleVector): Part | undefined {
 		const part = Make("Part", {
 			Position: position.toVector3(),

@@ -27,6 +27,7 @@ interface ClientEvents {
 		hydrate: (actions: PlayerData) => void;
 		start: () => void;
 	};
+	writeToEventLog: (message: string) => void;
 }
 
 interface ClientFunctions {}
