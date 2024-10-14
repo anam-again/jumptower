@@ -15,7 +15,7 @@ const ALIGN_ORIENTATION_LERP_DISTANCE = 0.2;
 const ALIGN_ORIENTATION_MAX_TORQUE = 100000;
 const ALIGN_ORIENTATION_RESPONSIVENESS = 1000;
 
-const DESTROYED_SPORE_GLOW_EFFECT_SIZE = 4;
+const DESTROYED_SPORE_GLOW_EFFECT_SIZE = 2;
 
 interface Tool_BasicBlaster_Mod extends Omit<Tool_BasicBlaster, "Handle"> {}
 
@@ -184,7 +184,7 @@ export class Tool_BasicBlasterComponent extends BaseComponent<{}, Tool_BasicBlas
 				Anchored: true,
 				Color: new Color3(1, 1, 1),
 			});
-			new FadeDestroyExtension(glowPart, { secondsUntilFadeAway: 0.1 });
+			new FadeDestroyExtension(glowPart, { secondsUntilFadeAway: 0.06 });
 		}
 	}
 }

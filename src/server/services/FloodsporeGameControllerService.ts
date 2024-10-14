@@ -1,4 +1,4 @@
-import { Service, OnStart } from "@flamework/core";
+import { Service, OnStart, Dependency } from "@flamework/core";
 import { Make } from "@rbxts/altmake";
 import { Players, Workspace } from "@rbxts/services";
 import { Events } from "server/network";
@@ -7,9 +7,74 @@ import { createGUID } from "shared/utils/guid";
 import { DoubletapService } from "./DoubletapService";
 import { ComponentTags } from "shared/tags";
 import { store } from "server/store";
+import Signal from "@rbxts/signal";
+import { OneWayTeleporterExtension } from "server/components/Extensions/OneWayTeleporterExtension";
+import { Components } from "@flamework/components";
+import { teleportPlayerToPart } from "./utils/commands";
+import { raceAndTerminateTasks } from "shared/utils/task";
 
-const SPORE_SIZE = 4;
-const SPORE_SHUFFLE_INTERVAL_S = 5;
+const SPORE_SIZE = 2;
+const SPORE_SIZE_I = 1 / SPORE_SIZE; // todo remove
+
+interface SporeConfig {
+	shuffleInterval_s: number;
+
+	finalPhaseCapSize: number;
+	finalPhaseGrowth_s: number;
+	finalPhaseMinBound: number;
+
+	overgrowthPhaseCapSize: number;
+	regularPhaseUpperBound: number;
+	regularPhaseLinearConstant: number;
+	regularPhaseMinBound: number;
+}
+interface GameConfig {
+	startingSporeGrowthLoops: number;
+	maxStartingSpawnersUsed: number;
+}
+interface GameConfigValues {
+	spore: SporeConfig;
+	game: GameConfig;
+}
+
+export const GAME_CONFIG = {
+	Normal: {
+		spore: {
+			finalPhaseCapSize: 80 * (SPORE_SIZE_I / 2),
+			finalPhaseGrowth_s: 0.05 * SPORE_SIZE_I,
+			finalPhaseMinBound: 0.3,
+			overgrowthPhaseCapSize: 8000 * SPORE_SIZE_I,
+			regularPhaseLinearConstant: 16000 * SPORE_SIZE_I,
+			regularPhaseMinBound: 0.05,
+			regularPhaseUpperBound: 0.5 - SPORE_SIZE_I * 0.25,
+			shuffleInterval_s: 0.2,
+		},
+		game: {
+			maxStartingSpawnersUsed: 5,
+			startingSporeGrowthLoops: 1400,
+		},
+	},
+	Dev: {
+		spore: {
+			finalPhaseCapSize: 100,
+			finalPhaseGrowth_s: 0,
+			finalPhaseMinBound: 5,
+			overgrowthPhaseCapSize: 8000 * SPORE_SIZE_I,
+			regularPhaseLinearConstant: 16000 * SPORE_SIZE_I,
+			regularPhaseMinBound: 0.05,
+			regularPhaseUpperBound: 0.5 - SPORE_SIZE_I * 0.25,
+			shuffleInterval_s: 0.2,
+		},
+		game: {
+			maxStartingSpawnersUsed: 1,
+			startingSporeGrowthLoops: 0,
+		},
+	},
+} satisfies Record<string, GameConfigValues>;
+
+interface GameStartProps {
+	lobbyTeleporter: OneWayTeleporterExtension;
+}
 
 class SimpleVector {
 	private x!: number;
@@ -73,67 +138,149 @@ export class FloodsporeGameControllerService implements OnStart {
 	 * Please only pop/push this. Rbxts doesn't give me a queue/stack
 	 **/
 	private activeSporeList: Array<string> = [];
+	private gameConfig!: GameConfigValues;
+	public playersInGame: Set<Player> = new Set<Player>();
+
+	public testMapTeleporter!: OneWayTeleporterExtension;
 
 	onStart() {
 		task.spawn(() => {
 			this.handleSporeHitEvent();
 		});
-		// temp
-		Workspace.Map.temp.button.Touched.Connect((part) => {
-			if (DoubletapService.isDoubletapped(this.id, 1000 * 10)) {
-				this.sporeMap.forEach((s) => {
-					s.Destroy();
-				});
-				this.sporeMap.clear();
-				this.activeSporeList.clear();
-				Workspace.Map.Spawners.GetChildren().forEach((child) => {
-					if (!child.IsA("BasePart")) return;
-					const pos = new SimpleVector(child.Position);
-					const poss = pos.toString();
-					const fSpore = this.makeSporeHere(pos);
-					if (fSpore === undefined) return;
-					this.sporeMap.set(poss, fSpore);
-					this.activeSporeList.push(poss);
-					store.setSporeCount(this.sporeMap.size());
-				});
-				this.startGame();
-			}
+
+		new GiveToolToPlayerPartExtension(Workspace.Map.Map_Testing.temp.GiveLaserButton, {
+			tool: Workspace.Objects.Tool_BasicBlaster.Clone(),
 		});
 
-		new GiveToolToPlayerPartExtension(Workspace.Map.temp.GiveGunButton, {
-			tool: Workspace.Objects.Tool_BasicBlaster.Clone(),
+		this.testMapTeleporter = new OneWayTeleporterExtension(Workspace.Map.Map_Testing.PlayerSpawn, {});
+	}
+
+	spawnSpawnerSpores() {
+		Workspace.Map.Map_Testing.Spawners.GetChildren().forEach((child) => {
+			if (!child.IsA("BasePart")) return;
+			const pos = new SimpleVector(child.Position);
+			const poss = pos.toString();
+			const fSpore = this.makeSporeHere(pos);
+			if (fSpore === undefined) return;
+			this.sporeMap.set(poss, fSpore);
+			this.activeSporeList.push(poss);
+			store.setSporeCount(this.sporeMap.size());
 		});
 	}
 
-	startGame() {
-		task.spawn(() => {
-			Events.writeToEventLog.fire(Players.GetPlayers(), "Spores have been spawned!");
-			while (this.activeSporeList.size() > 0) {
-				task.wait(SPORE_SHUFFLE_INTERVAL_S);
-				this.shuffle(this.activeSporeList);
-			}
-			Events.writeToEventLog.fire(Players.GetPlayers(), "All spores defeated.");
+	deleteAllSpores() {
+		this.sporeMap.forEach((s) => {
+			s.Destroy();
 		});
-		while (this.activeSporeList.size() > 0) {
-			this.growNextQueuedSpore();
-			const w = this.waitTimeUntilNextQueuedSporeSpawn();
-			task.wait(w);
+		this.sporeMap.clear();
+		this.activeSporeList.clear();
+	}
+
+	startGame(gameConfig: GameConfigValues, gameStartProps: GameStartProps) {
+		if (gameStartProps.lobbyTeleporter.parent === undefined) {
+			throw error("Lobby teleporter has no parent part");
 		}
+		gameStartProps.lobbyTeleporter.setTargetPart(Workspace.Map.Map_Testing.PlayerSpawn); //todo
+		const playerTeleportedIntoMapSignal = gameStartProps.lobbyTeleporter.onPlayerTeleported.Connect((player) => {
+			this.playersInGame.add(player);
+		});
+		const playerDisconnect = Players.PlayerRemoving.Connect((player) => {
+			this.playersInGame.delete(player);
+		});
+
+		this.gameConfig = gameConfig;
+		this.deleteAllSpores();
+		this.spawnSpawnerSpores();
+		for (let i = 0; i < this.gameConfig.game.startingSporeGrowthLoops; i++) {
+			this.shuffleSwapRandomActiveSpore();
+			this.growNextQueuedSpore();
+			task.wait(0.01);
+		}
+		Events.writeToEventLog.fire(Players.GetPlayers(), "Spores have been spawned!");
+		const gameEndTask = raceAndTerminateTasks([
+			() => {
+				task.wait(110);
+				Events.writeToEventLog(Players.GetPlayers(), "Only ten seconds left to defeat the flood!");
+				for (let i = 10; i > 0; i--) {
+					Events.writeToEventLog(Players.GetPlayers(), `${i} seconds remaining...`);
+					task.wait(1);
+				}
+			},
+			() => {
+				while (this.activeSporeList.size() > 0) {
+					this.shuffleSwapRandomActiveSpore();
+					task.wait(this.gameConfig.spore.shuffleInterval_s);
+				}
+			},
+			() => {
+				while (this.activeSporeList.size() > 0) {
+					this.growNextQueuedSpore();
+					const w = this.waitTimeUntilNextQueuedSporeSpawn();
+					task.wait(w);
+				}
+			},
+		]);
+
+		gameStartProps.lobbyTeleporter.setTargetPart(undefined);
+
+		if (gameEndTask === 0) {
+			Events.writeToEventLog.fire(
+				Players.GetPlayers(),
+				"Wasn't able to defeat spores in time, mission failed...",
+			);
+			task.wait(3);
+			this.playersInGame.forEach((player) => {
+				if (gameStartProps.lobbyTeleporter.parent === undefined) {
+					throw error("lobby teleporter lacks parent");
+				}
+				Events.writeToEventLog.fire(player, "Returning you to the lobby");
+				teleportPlayerToPart(player, gameStartProps.lobbyTeleporter.parent);
+			});
+			this.playersInGame.clear();
+			this.deleteAllSpores();
+			task.wait(1);
+			Events.writeToEventLog.fire(Players.GetPlayers(), "Starting next map vote in 15 seconds");
+			task.wait(15);
+		} else {
+			Events.writeToEventLog.fire(Players.GetPlayers(), "All spores defeated, head to the return teleporter.");
+			// TODO
+			this.testMapTeleporter.setTargetPart(gameStartProps.lobbyTeleporter.parent);
+			const playerTeleportedToLobbySignal = this.testMapTeleporter.onPlayerTeleported.Connect((player) => {
+				this.playersInGame.delete(player);
+			});
+			task.wait(1);
+			Events.writeToEventLog.fire(Players.GetPlayers(), "Starting next map vote in 15 seconds");
+			task.wait(15);
+
+			this.playersInGame.forEach((player) => {
+				if (gameStartProps.lobbyTeleporter.parent === undefined) {
+					throw error("lobby teleporter lacks parent");
+				}
+				Events.writeToEventLog.fire(player, "Returning you to the lobby");
+				teleportPlayerToPart(player, gameStartProps.lobbyTeleporter.parent);
+			});
+			playerTeleportedToLobbySignal.Disconnect();
+		}
+
+		this.testMapTeleporter.setTargetPart(undefined);
+		playerTeleportedIntoMapSignal.Disconnect();
+		playerDisconnect.Disconnect();
 	}
 
 	/**
 	 * Wait a calculated amount of time;
-	 * TODO Tweak
 	 */
 	waitTimeUntilNextQueuedSporeSpawn(): number {
-		// https://www.desmos.com/calculator/3i5jogkblw
 		const x = this.sporeMap.size();
-		if (x < 20) {
-			return 0.05 * x;
-		} else if (x > 2000) {
+		if (x < this.gameConfig.spore.finalPhaseCapSize) {
+			return math.max(this.gameConfig.spore.finalPhaseMinBound, this.gameConfig.spore.finalPhaseGrowth_s * x);
+		} else if (x > this.gameConfig.spore.overgrowthPhaseCapSize) {
 			return 0.001;
 		}
-		return math.max(0.1, 0.5 - x / 4000);
+		return math.max(
+			this.gameConfig.spore.regularPhaseMinBound,
+			this.gameConfig.spore.regularPhaseUpperBound - x / this.gameConfig.spore.regularPhaseLinearConstant,
+		);
 	}
 
 	handleSporeHitEvent() {
@@ -213,6 +360,14 @@ export class FloodsporeGameControllerService implements OnStart {
 			[arr[m], arr[i]] = [arr[i], arr[m]];
 		}
 		return arr;
+	}
+
+	private shuffleSwapRandomActiveSpore() {
+		const activeSporeListSize = this.activeSporeList.size();
+		const randomIndex = math.floor(math.random() * activeSporeListSize);
+		const headValue = this.activeSporeList[activeSporeListSize - 1];
+		this.activeSporeList[activeSporeListSize - 1] = this.activeSporeList[randomIndex];
+		this.activeSporeList[randomIndex] = headValue;
 	}
 
 	/**
