@@ -13,7 +13,7 @@ import { Components } from "@flamework/components";
 import { teleportPlayerToPart } from "./utils/commands";
 import { raceAndTerminateTasks } from "shared/utils/task";
 
-const SPORE_SIZE = 2;
+const SPORE_SIZE = 4;
 const SPORE_SIZE_I = 1 / SPORE_SIZE; // todo remove
 
 interface SporeConfig {
@@ -31,6 +31,7 @@ interface SporeConfig {
 interface GameConfig {
 	startingSporeGrowthLoops: number;
 	maxStartingSpawnersUsed: number;
+	timeLimit: number;
 }
 interface GameConfigValues {
 	spore: SporeConfig;
@@ -46,12 +47,13 @@ export const GAME_CONFIG = {
 			overgrowthPhaseCapSize: 8000 * SPORE_SIZE_I,
 			regularPhaseLinearConstant: 16000 * SPORE_SIZE_I,
 			regularPhaseMinBound: 0.05,
-			regularPhaseUpperBound: 0.5 - SPORE_SIZE_I * 0.25,
+			regularPhaseUpperBound: 0.8 - SPORE_SIZE_I * 0.25,
 			shuffleInterval_s: 0.2,
 		},
 		game: {
-			maxStartingSpawnersUsed: 5,
-			startingSporeGrowthLoops: 1400,
+			maxStartingSpawnersUsed: 2,
+			startingSporeGrowthLoops: 200,
+			timeLimit: 240,
 		},
 	},
 	Dev: {
@@ -68,6 +70,7 @@ export const GAME_CONFIG = {
 		game: {
 			maxStartingSpawnersUsed: 1,
 			startingSporeGrowthLoops: 0,
+			timeLimit: 1028,
 		},
 	},
 } satisfies Record<string, GameConfigValues>;
@@ -155,8 +158,14 @@ export class FloodsporeGameControllerService implements OnStart {
 		this.testMapTeleporter = new OneWayTeleporterExtension(Workspace.Map.Map_Testing.PlayerSpawn, {});
 	}
 
-	spawnSpawnerSpores() {
-		Workspace.Map.Map_Testing.Spawners.GetChildren().forEach((child) => {
+	spawnSpawnerSpores(maxSpawnersToUse: number) {
+		let spawners = Workspace.Map.Map_Testing.Spawners.GetChildren();
+		this.shuffle(spawners);
+		spawners = spawners.filter((_, i) => {
+			// there is no array.slice, which would be preffered here
+			return i < maxSpawnersToUse;
+		});
+		spawners.forEach((child) => {
 			if (!child.IsA("BasePart")) return;
 			const pos = new SimpleVector(child.Position);
 			const poss = pos.toString();
@@ -190,7 +199,7 @@ export class FloodsporeGameControllerService implements OnStart {
 
 		this.gameConfig = gameConfig;
 		this.deleteAllSpores();
-		this.spawnSpawnerSpores();
+		this.spawnSpawnerSpores(gameConfig.game.maxStartingSpawnersUsed);
 		for (let i = 0; i < this.gameConfig.game.startingSporeGrowthLoops; i++) {
 			this.shuffleSwapRandomActiveSpore();
 			this.growNextQueuedSpore();
@@ -205,6 +214,13 @@ export class FloodsporeGameControllerService implements OnStart {
 					Events.writeToEventLog(Players.GetPlayers(), `${i} seconds remaining...`);
 					task.wait(1);
 				}
+			},
+			() => {
+				while (this.sporeMap.size() < 5000) {
+					task.wait(5);
+				}
+				Events.writeToEventLog(Players.GetPlayers(), "The Flood is too large! They've gone critical!");
+				task.wait(1);
 			},
 			() => {
 				while (this.activeSporeList.size() > 0) {
@@ -223,11 +239,8 @@ export class FloodsporeGameControllerService implements OnStart {
 
 		gameStartProps.lobbyTeleporter.setTargetPart(undefined);
 
-		if (gameEndTask === 0) {
-			Events.writeToEventLog.fire(
-				Players.GetPlayers(),
-				"Wasn't able to defeat spores in time, mission failed...",
-			);
+		if (gameEndTask <= 1) {
+			Events.writeToEventLog.fire(Players.GetPlayers(), "Wasn't able to defeat spores, mission failed...");
 			task.wait(3);
 			this.playersInGame.forEach((player) => {
 				if (gameStartProps.lobbyTeleporter.parent === undefined) {
