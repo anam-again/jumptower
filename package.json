@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build": "rbxtsc",
+    "build:lobby": "cd scripts && buildPlace.bat 0 && cd .. && rbxtsc",
+    "build:sandy": "cd scripts && buildPlace.bat 1 && cd .. && rbxtsc",
     "watch": "rbxtsc -w",
     "lint-fix": "npx eslint . --fix"
   },
