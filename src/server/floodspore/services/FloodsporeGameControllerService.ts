@@ -1,17 +1,18 @@
 import { Service, OnStart, Dependency } from "@flamework/core";
-import { Make } from "@rbxts/altmake";
+import { Make, Modify } from "@rbxts/altmake";
 import { Players, Workspace } from "@rbxts/services";
 import { Events } from "server/common/network";
 import { GiveToolToPlayerPartExtension } from "shared/components/Extensions/GiveToolToPlayerPartExtension";
 import { createGUID } from "shared/utils/guid";
-import { DoubletapService } from "./DoubletapService";
-import { ComponentTags } from "shared/tags";
+import { DoubletapService } from "../../common/services/DoubletapService";
+import { ComponentTags } from "shared/constants";
 import { store } from "server/common/store";
 import Signal from "@rbxts/signal";
-import { OneWayTeleporterExtension } from "server/floodspore/components/Extensions/OneWayTeleporterExtension";
+import { OneWayTeleporterExtension } from "server/common/components/extensions/OneWayTeleporterExtension";
 import { Components } from "@flamework/components";
-import { teleportPlayerToPart } from "./utils/commands";
+import { teleportPlayerToPart } from "../../common/utils/commands";
 import { raceAndTerminateTasks } from "shared/utils/task";
+import { getWorkspaceInstance } from "shared/utils/workspace";
 
 const SPORE_SIZE = 4;
 const SPORE_SIZE_I = 1 / SPORE_SIZE; // todo remove
@@ -75,9 +76,7 @@ export const GAME_CONFIG = {
 	},
 } satisfies Record<string, GameConfigValues>;
 
-interface GameStartProps {
-	lobbyTeleporter: OneWayTeleporterExtension;
-}
+interface GameStartProps {}
 
 class SimpleVector {
 	private x!: number;
@@ -133,33 +132,39 @@ class SimpleVector {
 	}
 }
 
+export enum GameResult {
+	Victory,
+	Timeout,
+	Critical,
+}
+
 @Service({})
 export class FloodsporeGameControllerService implements OnStart {
-	private id = createGUID();
 	private sporeMap: Map<string, Part> = new Map<string, Part>();
 	/**
 	 * Please only pop/push this. Rbxts doesn't give me a queue/stack
 	 **/
 	private activeSporeList: Array<string> = [];
 	private gameConfig!: GameConfigValues;
-	public playersInGame: Set<Player> = new Set<Player>();
 
-	public testMapTeleporter!: OneWayTeleporterExtension;
+	private SpawnedSporesFolder = getWorkspaceInstance(["floodspore", "SpawnedSpores"], "Folder");
 
 	onStart() {
 		task.spawn(() => {
 			this.handleSporeHitEvent();
 		});
-
-		new GiveToolToPlayerPartExtension(Workspace.Map.Map_Testing.temp.GiveLaserButton, {
-			tool: Workspace.Objects.Tool_BasicBlaster.Clone(),
-		});
-
-		this.testMapTeleporter = new OneWayTeleporterExtension(Workspace.Map.Map_Testing.PlayerSpawn, {});
+		getWorkspaceInstance(["floodspore", "Spawners"], "Folder")
+			.GetChildren()
+			.forEach((part) => {
+				if (!part.IsA("BasePart")) return;
+				Modify(part, {
+					Transparency: 1,
+				});
+			});
 	}
 
 	spawnSpawnerSpores(maxSpawnersToUse: number) {
-		let spawners = Workspace.Map.Map_Testing.Spawners.GetChildren();
+		let spawners = getWorkspaceInstance(["floodspore", "Spawners"], "Folder").GetChildren();
 		this.shuffle(spawners);
 		spawners = spawners.filter((_, i) => {
 			// there is no array.slice, which would be preffered here
@@ -185,18 +190,7 @@ export class FloodsporeGameControllerService implements OnStart {
 		this.activeSporeList.clear();
 	}
 
-	startGame(gameConfig: GameConfigValues, gameStartProps: GameStartProps) {
-		if (gameStartProps.lobbyTeleporter.parent === undefined) {
-			throw error("Lobby teleporter has no parent part");
-		}
-		gameStartProps.lobbyTeleporter.setTargetPart(Workspace.Map.Map_Testing.PlayerSpawn); //todo
-		const playerTeleportedIntoMapSignal = gameStartProps.lobbyTeleporter.onPlayerTeleported.Connect((player) => {
-			this.playersInGame.add(player);
-		});
-		const playerDisconnect = Players.PlayerRemoving.Connect((player) => {
-			this.playersInGame.delete(player);
-		});
-
+	startGame(gameConfig: GameConfigValues): GameResult {
 		this.gameConfig = gameConfig;
 		this.deleteAllSpores();
 		this.spawnSpawnerSpores(gameConfig.game.maxStartingSpawnersUsed);
@@ -237,47 +231,14 @@ export class FloodsporeGameControllerService implements OnStart {
 			},
 		]);
 
-		gameStartProps.lobbyTeleporter.setTargetPart(undefined);
-
-		if (gameEndTask <= 1) {
-			Events.writeToEventLog.fire(Players.GetPlayers(), "Wasn't able to defeat spores, mission failed...");
-			task.wait(3);
-			this.playersInGame.forEach((player) => {
-				if (gameStartProps.lobbyTeleporter.parent === undefined) {
-					throw error("lobby teleporter lacks parent");
-				}
-				Events.writeToEventLog.fire(player, "Returning you to the lobby");
-				teleportPlayerToPart(player, gameStartProps.lobbyTeleporter.parent);
-			});
-			this.playersInGame.clear();
-			this.deleteAllSpores();
-			task.wait(1);
-			Events.writeToEventLog.fire(Players.GetPlayers(), "Starting next map vote in 15 seconds");
-			task.wait(15);
-		} else {
-			Events.writeToEventLog.fire(Players.GetPlayers(), "All spores defeated, head to the return teleporter.");
-			// TODO
-			this.testMapTeleporter.setTargetPart(gameStartProps.lobbyTeleporter.parent);
-			const playerTeleportedToLobbySignal = this.testMapTeleporter.onPlayerTeleported.Connect((player) => {
-				this.playersInGame.delete(player);
-			});
-			task.wait(1);
-			Events.writeToEventLog.fire(Players.GetPlayers(), "Starting next map vote in 15 seconds");
-			task.wait(15);
-
-			this.playersInGame.forEach((player) => {
-				if (gameStartProps.lobbyTeleporter.parent === undefined) {
-					throw error("lobby teleporter lacks parent");
-				}
-				Events.writeToEventLog.fire(player, "Returning you to the lobby");
-				teleportPlayerToPart(player, gameStartProps.lobbyTeleporter.parent);
-			});
-			playerTeleportedToLobbySignal.Disconnect();
+		switch (gameEndTask) {
+			case 0:
+				return GameResult.Timeout;
+			case 1:
+				return GameResult.Critical;
+			default:
+				return GameResult.Victory;
 		}
-
-		this.testMapTeleporter.setTargetPart(undefined);
-		playerTeleportedIntoMapSignal.Disconnect();
-		playerDisconnect.Disconnect();
 	}
 
 	/**
@@ -390,7 +351,7 @@ export class FloodsporeGameControllerService implements OnStart {
 		const part = Make("Part", {
 			Position: position.toVector3(),
 			Size: new Vector3(SPORE_SIZE, SPORE_SIZE, SPORE_SIZE),
-			Parent: Workspace.SpawnedSpores,
+			Parent: this.SpawnedSporesFolder,
 			Anchored: true,
 		});
 		if (part.GetTouchingParts().size() > 0) {

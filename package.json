@@ -6,6 +6,7 @@
   "scripts": {
     "build:lobby": "cd scripts && buildPlace.bat 0 && cd .. && rbxtsc",
     "build:sandy": "cd scripts && buildPlace.bat 1 && cd .. && rbxtsc",
+    "build:spacetest": "cd scripts && buildPlace.bat 2 && cd .. && rbxtsc",
     "watch": "rbxtsc -w",
     "lint-fix": "npx eslint . --fix"
   },

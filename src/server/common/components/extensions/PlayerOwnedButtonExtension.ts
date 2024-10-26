@@ -1,6 +1,6 @@
 import { Players } from "@rbxts/services";
 import Signal from "@rbxts/signal";
-import { DoubletapService } from "server/floodspore/services/DoubletapService";
+import { DoubletapService } from "server/common/services/DoubletapService";
 import { createGUID } from "shared/utils/guid";
 
 export class PlayerOwnedButtonExtension {

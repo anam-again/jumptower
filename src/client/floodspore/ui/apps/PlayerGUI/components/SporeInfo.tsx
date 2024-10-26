@@ -10,7 +10,7 @@ export default function SporeInfo() {
 	const sporeText = `Spores Remaining:<br/>${sporeCount}`;
 	return (
 		<Frame
-			Position={new UDim2(0, 20, 0.5, 0)}
+			Position={new UDim2(0, 0, 0.6, 0)}
 			Size={new UDim2(0, 180, 0, 60)}
 			BackgroundTransparency={0.2}
 			BackgroundColor3={new Color3(0, 0.32, 0.33)}

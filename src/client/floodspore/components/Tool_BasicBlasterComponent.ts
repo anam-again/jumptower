@@ -4,7 +4,8 @@ import { Debris, Players, RunService, Workspace } from "@rbxts/services";
 import { Make } from "@rbxts/altmake";
 import { Events } from "client/common/network";
 import { FadeDestroyExtension } from "./Extensions/FadeDestroyExtension";
-import { ComponentTags } from "shared/tags";
+import { ComponentTags } from "shared/constants";
+import { getWorkspaceInstance } from "shared/utils/workspace";
 
 const BEAM_DURATION_S = 0.5;
 const BLASTER_FIRE_SPEED_S = 0.01;
@@ -28,6 +29,8 @@ export class Tool_BasicBlasterComponent extends BaseComponent<{}, Tool_BasicBlas
 	 * The gun can be toggled on and off
 	 */
 	private isActivated = false;
+
+	static SpawnedEffectsFolder = getWorkspaceInstance(["SpawnedEffects"], "Folder");
 
 	onStart() {
 		this.instance.ToolTip = "Get to blastin'";
@@ -116,7 +119,7 @@ export class Tool_BasicBlasterComponent extends BaseComponent<{}, Tool_BasicBlas
 		const mouse = this.playerParent?.GetMouse();
 		if (mouse === undefined) return;
 		const beamOrigin = Make("Part", {
-			Parent: Workspace.SpawnedEffects,
+			Parent: Tool_BasicBlasterComponent.SpawnedEffectsFolder,
 			Position: this.instance.BeamOrigin.Position,
 			Size: new Vector3(1, 1, 1),
 			Anchored: true,
@@ -156,7 +159,7 @@ export class Tool_BasicBlasterComponent extends BaseComponent<{}, Tool_BasicBlas
 		if (mouse.Target?.HasTag(ComponentTags.SporeUnitComponent)) {
 			Events.clientKillSpore.fire(mouse.Target.Position);
 			const rubble = Make("Part", {
-				Parent: Workspace.SpawnedEffects,
+				Parent: Tool_BasicBlasterComponent.SpawnedEffectsFolder,
 				Size: new Vector3(1, 1, 1),
 				Transparency: 0.0,
 				Position: mouse.Target.Position,
@@ -167,9 +170,8 @@ export class Tool_BasicBlasterComponent extends BaseComponent<{}, Tool_BasicBlas
 			});
 			new FadeDestroyExtension(rubble, { secondsUntilFadeAway: 1 });
 			rubble.ApplyImpulse(new Vector3(math.random() * 100, math.random() * 100, math.random() * 100));
-
 			const glowPart = Make("Part", {
-				Parent: Workspace.SpawnedEffects,
+				Parent: Tool_BasicBlasterComponent.SpawnedEffectsFolder,
 				Size: new Vector3(
 					DESTROYED_SPORE_GLOW_EFFECT_SIZE,
 					DESTROYED_SPORE_GLOW_EFFECT_SIZE,
