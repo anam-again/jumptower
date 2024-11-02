@@ -3,6 +3,7 @@
   "globIgnorePaths": ["**/package.json", "**/tsconfig.json"],
   "tree": {
     "$className": "DataModel",
+
     "ServerScriptService": {
       "$className": "ServerScriptService",
       "TS": {
@@ -39,7 +40,8 @@
     "Workspace": {
       "$className": "Workspace",
       "$properties": {
-        "FilteringEnabled": true
+        "FilteringEnabled": true,
+        "StreamingEnabled": false
       }
     },
     "HttpService": {

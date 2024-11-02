@@ -1,4 +1,5 @@
-import { Players, RunService } from "@rbxts/services";
+import { RunService } from "@rbxts/services";
+
 interface FadeDestroyExtensionProps {
 	secondsUntilFadeAway: number;
 }

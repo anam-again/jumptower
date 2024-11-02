@@ -3,9 +3,9 @@ import Signal from "@rbxts/signal";
 
 @Service({})
 export class DoubletapService {
-	private static doubletap: Map<string, Signal> = new Map<string, Signal>();
+	private doubletap: Map<string, Signal> = new Map<string, Signal>();
 
-	static setTapSignal(key: string, timeMs: number): Signal {
+	setTapSignal(key: string, timeMs: number): Signal {
 		if (this.doubletap.get(key)) {
 			throw error(`Doubletap key already exists: ${key}`);
 		}
@@ -25,7 +25,7 @@ export class DoubletapService {
 	 * @param key Must be unique
 	 * @return If the doubletap exists already or not
 	 **/
-	static isDoubletapped(key: string, timeMs = 1000): boolean {
+	isDoubletapped(key: string, timeMs = 1000): boolean {
 		if (this.doubletap.get(key) === undefined) {
 			this.setTapSignal(key, timeMs);
 			return true;

@@ -1,5 +1,6 @@
 import { Players } from "@rbxts/services";
 import Signal from "@rbxts/signal";
+
 import { teleportPlayerToPart } from "server/common/utils/commands";
 
 interface OneWayTeleporterExtensionProps {

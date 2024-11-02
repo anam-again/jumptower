@@ -1,4 +1,5 @@
 import { Flamework } from "@flamework/core";
+
 import { FloodsporePlaces, Globals, Places } from "shared/globals";
 
 if (Globals.Place in FloodsporePlaces) {
@@ -12,6 +13,7 @@ switch (Globals.Place) {
 		break;
 	case Places.Sandy:
 		Flamework.addPaths("src/server/place-sandy");
+		Flamework.addPaths("src/server/droppod");
 		break;
 	case Places.SpaceTest:
 		Flamework.addPaths("src/server/place-spacetest");

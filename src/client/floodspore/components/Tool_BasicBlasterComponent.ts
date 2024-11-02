@@ -1,11 +1,13 @@
 import { OnStart } from "@flamework/core";
 import { Component, BaseComponent } from "@flamework/components";
-import { Debris, Players, RunService, Workspace } from "@rbxts/services";
+import { Debris, Players, RunService } from "@rbxts/services";
 import { Make } from "@rbxts/altmake";
+
 import { Events } from "client/common/network";
-import { FadeDestroyExtension } from "./Extensions/FadeDestroyExtension";
 import { ComponentTags } from "shared/constants";
 import { getWorkspaceInstance } from "shared/utils/workspace";
+
+import { FadeDestroyExtension } from "./Extensions/FadeDestroyExtension";
 
 const BEAM_DURATION_S = 0.5;
 const BLASTER_FIRE_SPEED_S = 0.01;
@@ -15,7 +17,7 @@ const ALIGN_ORIENTATION_LERP_DISTANCE = 0.2;
 const ALIGN_ORIENTATION_MAX_TORQUE = 100000;
 const ALIGN_ORIENTATION_RESPONSIVENESS = 1000;
 
-const DESTROYED_SPORE_GLOW_EFFECT_SIZE = 2;
+const DESTROYED_SPORE_GLOW_EFFECT_SIZE = 4;
 
 interface Tool_BasicBlaster_Mod extends Omit<Tool_BasicBlaster, "Handle"> {}
 
@@ -30,7 +32,7 @@ export class Tool_BasicBlasterComponent extends BaseComponent<{}, Tool_BasicBlas
 	 */
 	private isActivated = false;
 
-	static SpawnedEffectsFolder = getWorkspaceInstance(["SpawnedEffects"], "Folder");
+	SpawnedEffectsFolder = getWorkspaceInstance(["SpawnedEffects"], "Folder");
 
 	onStart() {
 		this.instance.ToolTip = "Get to blastin'";
@@ -119,7 +121,7 @@ export class Tool_BasicBlasterComponent extends BaseComponent<{}, Tool_BasicBlas
 		const mouse = this.playerParent?.GetMouse();
 		if (mouse === undefined) return;
 		const beamOrigin = Make("Part", {
-			Parent: Tool_BasicBlasterComponent.SpawnedEffectsFolder,
+			Parent: this.SpawnedEffectsFolder,
 			Position: this.instance.BeamOrigin.Position,
 			Size: new Vector3(1, 1, 1),
 			Anchored: true,
@@ -159,7 +161,7 @@ export class Tool_BasicBlasterComponent extends BaseComponent<{}, Tool_BasicBlas
 		if (mouse.Target?.HasTag(ComponentTags.SporeUnitComponent)) {
 			Events.clientKillSpore.fire(mouse.Target.Position);
 			const rubble = Make("Part", {
-				Parent: Tool_BasicBlasterComponent.SpawnedEffectsFolder,
+				Parent: this.SpawnedEffectsFolder,
 				Size: new Vector3(1, 1, 1),
 				Transparency: 0.0,
 				Position: mouse.Target.Position,
@@ -171,7 +173,7 @@ export class Tool_BasicBlasterComponent extends BaseComponent<{}, Tool_BasicBlas
 			new FadeDestroyExtension(rubble, { secondsUntilFadeAway: 1 });
 			rubble.ApplyImpulse(new Vector3(math.random() * 100, math.random() * 100, math.random() * 100));
 			const glowPart = Make("Part", {
-				Parent: Tool_BasicBlasterComponent.SpawnedEffectsFolder,
+				Parent: this.SpawnedEffectsFolder,
 				Size: new Vector3(
 					DESTROYED_SPORE_GLOW_EFFECT_SIZE,
 					DESTROYED_SPORE_GLOW_EFFECT_SIZE,
@@ -185,7 +187,7 @@ export class Tool_BasicBlasterComponent extends BaseComponent<{}, Tool_BasicBlas
 				Anchored: true,
 				Color: new Color3(1, 1, 1),
 			});
-			new FadeDestroyExtension(glowPart, { secondsUntilFadeAway: 0.06 });
+			new FadeDestroyExtension(glowPart, { secondsUntilFadeAway: 0.15 });
 		}
 	}
 }

@@ -1,16 +1,10 @@
-import { Service, OnStart, Dependency } from "@flamework/core";
+import { Service, OnStart } from "@flamework/core";
 import { Make, Modify } from "@rbxts/altmake";
-import { Players, Workspace } from "@rbxts/services";
+import { Players } from "@rbxts/services";
+
 import { Events } from "server/common/network";
-import { GiveToolToPlayerPartExtension } from "shared/components/Extensions/GiveToolToPlayerPartExtension";
-import { createGUID } from "shared/utils/guid";
-import { DoubletapService } from "../../common/services/DoubletapService";
 import { ComponentTags } from "shared/constants";
 import { store } from "server/common/store";
-import Signal from "@rbxts/signal";
-import { OneWayTeleporterExtension } from "server/common/components/extensions/OneWayTeleporterExtension";
-import { Components } from "@flamework/components";
-import { teleportPlayerToPart } from "../../common/utils/commands";
 import { raceAndTerminateTasks } from "shared/utils/task";
 import { getWorkspaceInstance } from "shared/utils/workspace";
 

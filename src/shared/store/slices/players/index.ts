@@ -1,8 +1,6 @@
 import { combineProducers } from "@rbxts/reflex";
-import { balanceSlice } from "./balance";
-import { settingsSlice } from "./settings";
+import { PlayerDataSlice } from "./PlayerData";
 
 export const playersSlice = combineProducers({
-	balance: balanceSlice,
-	settings: settingsSlice,
+	playerData: PlayerDataSlice,
 });

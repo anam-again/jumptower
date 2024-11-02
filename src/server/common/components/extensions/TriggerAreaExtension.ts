@@ -1,7 +1,4 @@
-import { Make } from "@rbxts/altmake";
-import { RunService, Workspace } from "@rbxts/services";
 import Signal from "@rbxts/signal";
-import { createGUID } from "shared/utils/guid";
 
 interface TrackedObject {
 	part: BasePart;

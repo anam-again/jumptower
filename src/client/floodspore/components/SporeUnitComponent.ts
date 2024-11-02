@@ -1,6 +1,7 @@
 import { OnStart } from "@flamework/core";
 import { Component, BaseComponent } from "@flamework/components";
 import { RunService } from "@rbxts/services";
+
 import { ComponentTags } from "shared/constants";
 
 const COLOR_CHANGE_TIME_S = 15;

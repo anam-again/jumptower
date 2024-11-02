@@ -1,7 +1,5 @@
 import { createProducer } from "@rbxts/reflex";
 import { SporeState } from "./types";
-import { Currency } from "shared/configs/Currency";
-
 const initialState: SporeState = {
 	coolBool: true,
 	sporeCount: 0,

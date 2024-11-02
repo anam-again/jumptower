@@ -1,12 +1,15 @@
 import { OnStart, Service } from "@flamework/core";
 import { Modify } from "@rbxts/altmake";
+
 import { PlaceTeleporterExtension } from "server/common/components/extensions/PlaceTeleporterExtension";
+import { DoubletapService } from "server/common/services/DoubletapService";
 import { GiveToolToPlayerPartExtension } from "shared/components/Extensions/GiveToolToPlayerPartExtension";
 import { PlaceIds } from "shared/constants";
 import { getWorkspaceInstance } from "shared/utils/workspace";
 
 @Service({})
 export class SandyMapInitService implements OnStart {
+	constructor(private DoubletapService: DoubletapService) {}
 	onStart(): void {
 		getWorkspaceInstance(["Map", "InvisibleWalls"], "Folder")
 			.GetChildren()
@@ -26,6 +29,7 @@ export class SandyMapInitService implements OnStart {
 
 		new PlaceTeleporterExtension(getWorkspaceInstance(["Map", "ActiveObjects", "ReturnToSpawn"], "Part"), {
 			targetPlaceId: PlaceIds.Lobby,
+			DoubletapService: this.DoubletapService,
 		});
 	}
 }
