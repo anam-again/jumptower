@@ -1,12 +1,8 @@
 import { Place } from "./readEnv";
 
 export enum Places {
-	Lobby = 0,
-	Sandy = 1,
-	SpaceTest = 2,
+	Tower = 0,
 }
-
-export const FloodsporePlaces: Array<Places> = [Places.Sandy, Places.SpaceTest];
 
 interface GlobalVariables {
 	Place: Places;

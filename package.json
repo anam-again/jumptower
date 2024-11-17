@@ -1,12 +1,10 @@
 {
-  "name": "Floodspore",
+  "name": "2d-jumptower-obby",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build:lobby": "cd scripts && buildPlace.bat 0 && cd .. && rbxtsc",
-    "build:sandy": "cd scripts && buildPlace.bat 1 && cd .. && rbxtsc",
-    "build:spacetest": "cd scripts && buildPlace.bat 2 && cd .. && rbxtsc",
+    "build:tower": "cd scripts && buildPlace.bat 0 && cd .. && rbxtsc",
     "watch": "rbxtsc -w",
     "lint-fix": "npx eslint . --fix"
   },

@@ -1,10 +1,6 @@
 @ECHO OFF
 IF %1==0 (
-    echo "LOBBY"
-) ELSE IF %1==1 (
-    echo "SANDY"
-) ELSE IF %1==2 (
-    echo "SPACETEST"
+    echo "Tower"
 ) ELSE (
     echo "No valid place"
     echo %1

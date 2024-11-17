@@ -4,8 +4,6 @@ import { Workspace } from "@rbxts/services";
 
 import { getWorkspaceInstance } from "shared/utils/workspace";
 
-import { ClientSignals } from "../signals";
-
 export interface ControlledCamera {
 	camera: Camera;
 	zIndex: number;
@@ -27,16 +25,12 @@ export class CommonCameraController implements OnStart {
 			Parent: Workspace,
 		});
 		const defaultCamera = getWorkspaceInstance(["Camera"], "Camera").Clone();
-		defaultCamera.Name = "Default";
+		defaultCamera.Name = "RobloxDefaultOrbital";
 		defaultCamera.Parent = cameraFolder;
 		this.insertCamera(defaultCamera, -1000);
 
 		Workspace.GetPropertyChangedSignal("CurrentCamera").Connect(() => {
 			this.evaluateAndSetCurrentCamera();
-		});
-
-		ClientSignals.ForceCamera.Connect((camera) => {
-			this.forceCamera(camera);
 		});
 	}
 
@@ -47,7 +41,6 @@ export class CommonCameraController implements OnStart {
 			return;
 		}
 		this.sortCameras();
-		ClientSignals.CamerasEvaluated.Fire(this.cameras);
 		const highestCamera = this.cameras[this.cameras.size() - 1];
 		if (Workspace.CurrentCamera?.Name !== highestCamera.camera.Name) {
 			Workspace.CurrentCamera = highestCamera.camera;
@@ -79,7 +72,7 @@ export class CommonCameraController implements OnStart {
 	public insertCamera(camera: Camera, zIndex: number) {
 		this.cameras.forEach((tCamera) => {
 			if (tCamera.camera.Name === camera.Name)
-				throw error(`Please provide a unique name for your camera, recieved: ${camera.Name}`);
+				throw error(`Please provide a unique name for your camera, received: ${camera.Name}`);
 		});
 		this.cameras.push({ camera, zIndex });
 		this.evaluateAndSetCurrentCamera();

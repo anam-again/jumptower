@@ -1,10 +1,8 @@
 import { Controller, OnStart } from "@flamework/core";
 import React from "@rbxts/react";
-import { ReflexProvider } from "@rbxts/react-reflex";
 import { createPortal, createRoot } from "@rbxts/react-roblox";
 import { Players } from "@rbxts/services";
-
-import { store } from "client/common/store";
+import { Make } from "@rbxts/altmake";
 
 import CommonGUIApp from "../ui/app/CommonGUIApp";
 
@@ -13,15 +11,11 @@ export class CommonGUIController implements OnStart {
 	private playerGui = Players.LocalPlayer.WaitForChild("PlayerGui");
 
 	onStart() {
-		const root = createRoot(new Instance("Folder"));
-		root.render(
-			createPortal(
-				<ReflexProvider producer={store}>
-					<CommonGUIApp />
-				</ReflexProvider>,
-				this.playerGui,
-				"CommonPlayerGUI",
-			),
-		);
+		const folder = Make("Folder", {
+			Parent: this.playerGui,
+			Name: "CommonPlayerGui",
+		});
+		const root = createRoot(folder);
+		root.render(createPortal(<CommonGUIApp />, folder, "CommonPlayerGUI"));
 	}
 }
