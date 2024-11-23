@@ -9,5 +9,9 @@
 	},
 	"eslint.run": "onSave",
 	"eslint.format.enable": true,
-	"typescript.tsdk": "node_modules/typescript/lib"
+	"typescript.tsdk": "node_modules/typescript/lib",
+	"workbench.colorCustomizations": {
+  		"titleBar.activeBackground": "#2d1a58" // Change this color!
+	},
+	"window.titleBarStyle": "custom"
 }

@@ -4,18 +4,36 @@ import { createPortal, createRoot } from "@rbxts/react-roblox";
 import { Players } from "@rbxts/services";
 import { Make } from "@rbxts/altmake";
 
-import CommonGUIApp from "../ui/app/CommonGUIApp";
+import CommonGUIApp from "../ui/CommonGUIApp";
+import LoadingGUIApp from "../ui/LoadingGUIApp";
+import ThoughtProviderGUIApp from "../ui/ThoughtProvidorGUIApp";
 
 @Controller({})
 export class CommonGUIController implements OnStart {
 	private playerGui = Players.LocalPlayer.WaitForChild("PlayerGui");
 
 	onStart() {
-		const folder = Make("Folder", {
+		const loadingFolder = Make("Folder", {
 			Parent: this.playerGui,
-			Name: "CommonPlayerGui",
+			Name: "LoadingGUIApp",
 		});
-		const root = createRoot(folder);
-		root.render(createPortal(<CommonGUIApp />, folder, "CommonPlayerGUI"));
+		const loadingRoot = createRoot(loadingFolder);
+		loadingRoot.render(createPortal(<LoadingGUIApp />, loadingFolder, "LoadingGUIApp"));
+
+		const thoughtProviderFolder = Make("Folder", {
+			Parent: this.playerGui,
+			Name: "ThoughtProviderGUIApp",
+		});
+		const thoughtProviderRoot = createRoot(thoughtProviderFolder);
+		thoughtProviderRoot.render(
+			createPortal(<ThoughtProviderGUIApp />, thoughtProviderFolder, "ThoughtProviderGUIApp"),
+		);
+
+		const commonFolder = Make("Folder", {
+			Parent: this.playerGui,
+			Name: "CommonGUIApp",
+		});
+		const commonRoot = createRoot(commonFolder);
+		commonRoot.render(createPortal(<CommonGUIApp />, commonFolder, "CommonGUIApp"));
 	}
 }

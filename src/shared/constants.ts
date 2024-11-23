@@ -1,9 +1,19 @@
 export const enum ComponentTags {}
 
-export const TAGS = {};
+export const TAGS = {
+	StaticNPC: "StaticNPC",
+	PassPurchaseArea: "PassPurchaseArea",
+	EndlesslyRotating: "EndlesslyRotating",
+	ThoughtProvidor: "ThoughtProvider",
+};
 
 export const PlaceIds = {
 	Tower: 12345,
+};
+
+export const PASSES = {
+	SUPERSupporter: 976809595,
+	MINISupporter: 975603593,
 };
 
 export const COLOURS = {
@@ -45,10 +55,28 @@ export const SOUNDS = {
 	Click2: "rbxassetid://133158780412357",
 	RobloxClick: "rbxassetid://15675032796",
 	FutureClick: "rbxassetid://4499400560",
+
+	ErrorSound: "rbxassetid://2130284653",
+	GlassSplat: "rbxassetid://9114616111",
+	GlassSplat2: "rbxassetid://9114615719",
+	HelloNeighborJump: "rbxassetid://5672293922",
+	RobloxCuteGoodbye: "rbxassetid://15675081158",
+	UITapVariant: "rbxassetid://3623733749",
+	doinkyStep: "rbxassetid://3318723701",
+	hl2UIRollover: "rbxassetid://3199281218",
+	uiHover: "rbxassetid://18926058970",
 } satisfies Record<string, string>;
 
 export const ANIMATION = {
 	Dab: "rbxassetid://107196631869033",
+	JumpCharge: "rbxassetid://82558693603473",
+	JumpChargePose: "rbxassetid://117764993181844",
+	IdlePose1: "rbxassetid://140439813641021",
+	WalkPose1: "rbxassetid://118163663049093",
+	AirbornPose: "rbxassetid://119565995642288",
+	FallingPose: "rbxassetid://106940000293842",
+	BouncedAirbornPose: "rbxassetid://83598200427543",
+	FloorFallenPose: "rbxassetid://116292074515293",
 };
 
 export const MUSIC = {

@@ -1,6 +1,6 @@
 import { Controller, OnStart } from "@flamework/core";
 import { Make } from "@rbxts/altmake";
-import { SoundService, Workspace } from "@rbxts/services";
+import { Players, SoundService, Workspace } from "@rbxts/services";
 
 interface EncapsulatedSoundProps {
 	shouldVaryFollowupSounds?: boolean;
@@ -24,6 +24,12 @@ export class CommonSoundController implements OnStart {
 	private music = new Array<Sound>();
 
 	onStart() {
+		Players.LocalPlayer.CharacterAdded.Connect((character) => {
+			if (!character.PrimaryPart?.CFrame)
+				throw error(`No primary part attached to added character: ${Players.LocalPlayer.DisplayName}`);
+			SoundService.SetListener(Enum.ListenerType.CFrame, character.PrimaryPart.CFrame);
+		});
+
 		this.SoundFolder = Make("Folder", {
 			Name: "Sounds",
 			Parent: Workspace,
