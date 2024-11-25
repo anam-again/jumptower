@@ -1,12 +1,13 @@
 import { Networking } from "@flamework/networking";
+import { MirroredState, PlayerSounds, PlayerState } from "./types";
 
 // Client->Server
 interface ServerEvents {
-	action_right: (inputState: Enum.UserInputState) => void;
-	action_left: (inputState: Enum.UserInputState) => void;
-	action_down: (inputState: Enum.UserInputState) => void;
-	action_up: (inputState: Enum.UserInputState) => void;
-	action_jump: (inputState: Enum.UserInputState) => void;
+	updatePlayerState: (playerState: PlayerState) => void;
+	mirrorPlayerState: (mirrorState: MirroredState) => void;
+
+	playPlayerSound: (playerSound: PlayerSounds) => void;
+	togglePlayerSound: (playerSound: PlayerSounds, active: boolean) => void;
 }
 
 interface ServerFunctions {}

@@ -1,6 +1,7 @@
 import { Controller, OnStart } from "@flamework/core";
 import { ContextActionService, Players, UserInputService, Workspace } from "@rbxts/services";
 import { Events } from "../network";
+import { PlayerMovementController } from "./PlayerMovementController";
 
 enum ACTIONS {
 	Left = "Left",
@@ -17,6 +18,7 @@ interface MappedTouchInputObject {
 }
 @Controller({})
 export class CommonControllsController implements OnStart {
+	constructor(private PlayerMovementController: PlayerMovementController) {}
 	onStart(): void {
 		ContextActionService.UnbindAllActions();
 
@@ -36,19 +38,19 @@ export class CommonControllsController implements OnStart {
 					input,
 					action: ACTIONS.Left,
 				});
-				Events.action_left.fire(Enum.UserInputState.Begin);
+				this.PlayerMovementController.action_left(Enum.UserInputState.Begin);
 			} else if (input.Position.X < screenGui.AbsoluteSize.X / 2) {
 				touchInputObjects.push({
 					input,
 					action: ACTIONS.Right,
 				});
-				Events.action_right.fire(Enum.UserInputState.Begin);
+				this.PlayerMovementController.action_right(Enum.UserInputState.Begin);
 			} else {
 				touchInputObjects.push({
 					input,
 					action: ACTIONS.Jump,
 				});
-				Events.action_jump.fire(Enum.UserInputState.Begin);
+				this.PlayerMovementController.action_jump(Enum.UserInputState.Begin);
 			}
 		});
 
@@ -59,13 +61,13 @@ export class CommonControllsController implements OnStart {
 			if (i < 0) return;
 			switch (touchInputObjects[i].action) {
 				case ACTIONS.Left:
-					Events.action_left.fire(Enum.UserInputState.End);
+					this.PlayerMovementController.action_left(Enum.UserInputState.End);
 					break;
 				case ACTIONS.Right:
-					Events.action_right.fire(Enum.UserInputState.End);
+					this.PlayerMovementController.action_right(Enum.UserInputState.End);
 					break;
 				case ACTIONS.Jump:
-					Events.action_jump.fire(Enum.UserInputState.End);
+					this.PlayerMovementController.action_jump(Enum.UserInputState.End);
 					break;
 			}
 			touchInputObjects.unorderedRemove(i);
@@ -74,7 +76,7 @@ export class CommonControllsController implements OnStart {
 		ContextActionService.BindAction(
 			ACTIONS.Up,
 			(_, inputState) => {
-				Events.action_up.fire(inputState);
+				this.PlayerMovementController.action_up(inputState);
 			},
 			false,
 			Enum.KeyCode.W,
@@ -83,7 +85,7 @@ export class CommonControllsController implements OnStart {
 		ContextActionService.BindAction(
 			ACTIONS.Left,
 			(_, inputState) => {
-				Events.action_left.fire(inputState);
+				this.PlayerMovementController.action_left(inputState);
 			},
 			false,
 			Enum.KeyCode.A,
@@ -92,7 +94,7 @@ export class CommonControllsController implements OnStart {
 		ContextActionService.BindAction(
 			ACTIONS.Down,
 			(_, inputState) => {
-				Events.action_down.fire(inputState);
+				this.PlayerMovementController.action_down(inputState);
 			},
 			false,
 			Enum.KeyCode.S,
@@ -101,7 +103,7 @@ export class CommonControllsController implements OnStart {
 		ContextActionService.BindAction(
 			ACTIONS.Right,
 			(_, inputState) => {
-				Events.action_right.fire(inputState);
+				this.PlayerMovementController.action_right(inputState);
 			},
 			false,
 			Enum.KeyCode.D,
@@ -110,7 +112,7 @@ export class CommonControllsController implements OnStart {
 		ContextActionService.BindAction(
 			ACTIONS.Jump,
 			(_, inputState) => {
-				Events.action_jump.fire(inputState);
+				this.PlayerMovementController.action_jump(inputState);
 			},
 			false,
 			Enum.KeyCode.Space,

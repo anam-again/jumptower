@@ -1,12 +1,14 @@
 import { Controller, OnStart } from "@flamework/core";
-import { StarterGui } from "@rbxts/services";
+import { RunService, StarterGui } from "@rbxts/services";
 import { getOrWaitForLocalCharacter } from "../utils";
 
 @Controller({})
 export class PlayerInitController implements OnStart {
 	onStart(): void {
 		getOrWaitForLocalCharacter();
-		StarterGui.SetCore("ChatActive", false);
-		StarterGui.SetCoreGuiEnabled("PlayerList", false);
+		if (RunService.IsStudio()) {
+			StarterGui.SetCoreGuiEnabled("Chat", false);
+			StarterGui.SetCoreGuiEnabled("PlayerList", false);
+		}
 	}
 }
