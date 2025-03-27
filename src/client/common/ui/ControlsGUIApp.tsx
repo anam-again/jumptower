@@ -8,7 +8,7 @@ interface Props {
 }
 
 export default function ControlsGUIApp(props: Props) {
-	const [isMobile, setIsMobile] = useState(false);
+	const [isMobile, setIsMobile] = useState(true);
 	UserInputService.LastInputTypeChanged.Connect((lastInputType) => {
 		switch (lastInputType) {
 			case Enum.UserInputType.Touch:
@@ -20,17 +20,11 @@ export default function ControlsGUIApp(props: Props) {
 		}
 	});
 
-	const pressedLeft = () => {};
-
-	const pressedRight = () => {};
-
-	const pressedJump = () => {};
-
-	const WIDTH = 70;
-	const HEIGHT = 50;
+	const WIDTH = 90;
+	const HEIGHT = 75;
 	const OFFSET = 10;
 	const BOTTOM_OFFSET = 25;
-	const LARGE_OFFSET = 50;
+	const LARGE_OFFSET = 35;
 
 	return (
 		<screengui ClipToDeviceSafeArea={false} IgnoreGuiInset={true}>
@@ -58,7 +52,7 @@ export default function ControlsGUIApp(props: Props) {
 				Visible={isMobile}
 				Text={">"}
 				Size={new UDim2(0, WIDTH, 0, HEIGHT)}
-				Position={new UDim2(0, WIDTH * 2 + OFFSET * 2, 1, -BOTTOM_OFFSET - HEIGHT)}
+				Position={new UDim2(0, WIDTH + LARGE_OFFSET + OFFSET, 1, -BOTTOM_OFFSET - HEIGHT)}
 				BackgroundTransparency={0.8}
 				BackgroundColor3={COLOURS.UIBase}
 				AutomaticSize={"XY"}
