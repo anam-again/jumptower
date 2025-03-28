@@ -68,15 +68,15 @@ export const SOUNDS = {
 } satisfies Record<string, string>;
 
 export const ANIMATION = {
-	Dab: "rbxassetid://107196631869033",
-	JumpCharge: "rbxassetid://82558693603473",
-	JumpChargePose: "rbxassetid://117764993181844",
-	IdlePose1: "rbxassetid://140439813641021",
-	WalkPose1: "rbxassetid://118163663049093",
-	AirbornPose: "rbxassetid://119565995642288",
-	FallingPose: "rbxassetid://106940000293842",
-	BouncedAirbornPose: "rbxassetid://83598200427543",
-	FloorFallenPose: "rbxassetid://116292074515293",
+	Dab: "rbxassetid://122516657393506", // "rbxassetid://107196631869033",
+	JumpCharge: "rbxassetid://114612606535573", // "rbxassetid://82558693603473",
+	JumpChargePose: "rbxassetid://118080321233142", // 117764993181844",
+	IdlePose1: "rbxassetid://72840286158559", // "rbxassetid://140439813641021",
+	WalkPose1: "rbxassetid://87731425337699", // "rbxassetid://118163663049093",
+	AirbornPose: "rbxassetid://135790858384936", // "rbxassetid://119565995642288",
+	FallingPose: "rbxassetid://92159168619662", // "rbxassetid://106940000293842",
+	BouncedAirbornPose: "rbxassetid://121832166768726", // "rbxassetid://83598200427543",
+	FloorFallenPose: "rbxassetid://73935809113324", // "rbxassetid://116292074515293",
 };
 
 export const MUSIC = {
