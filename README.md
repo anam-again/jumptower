@@ -1,1 +1,1 @@
-[Jumptwoer](https://www.youtube.com/watch?v=Lg1kphuliAM)
+Video Review: https://www.youtube.com/watch?v=Lg1kphuliAM
